@@ -128,3 +128,4 @@ export const SUCCESS_MESSAGES = {
   WALLET_BACKED_UP: '지갑이 성공적으로 백업되었습니다.',
   WALLET_RESTORED: '지갑이 성공적으로 복구되었습니다.',
 } as const;
+

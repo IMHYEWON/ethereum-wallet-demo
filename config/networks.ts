@@ -81,3 +81,4 @@ export function isTestnet(chainId: number): boolean {
   const network = getNetworkConfig(chainId);
   return network?.isTestnet ?? false;
 }
+

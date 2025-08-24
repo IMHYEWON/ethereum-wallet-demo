@@ -100,3 +100,4 @@ wallet.config.json
 # Test files
 test-results/
 playwright-report/
+
