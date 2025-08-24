@@ -1,0 +1,61 @@
+{
+  "name": "ethereum-wallet-demo",
+  "version": "1.0.0",
+  "description": "Ethereum 및 ERC-20 토큰을 지원하는 단순한 지갑 데모 시스템",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "nodemon --exec ts-node src/cli/index.ts",
+    "start": "node dist/cli/index.js",
+    "test": "jest",
+    "test:unit": "jest --testPathPattern=unit",
+    "test:integration": "jest --testPathPattern=integration",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "format": "prettier --write src/**/*.ts",
+    "clean": "rm -rf dist",
+    "prepare": "npm run build"
+  },
+  "keywords": [
+    "ethereum",
+    "wallet",
+    "blockchain",
+    "cryptocurrency",
+    "typescript",
+    "demo"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "ethers": "^6.8.1",
+    "crypto-js": "^4.2.0",
+    "bip39": "^3.1.0",
+    "hdkey": "^2.1.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.2.2",
+    "@types/node": "^20.8.0",
+    "@typescript-eslint/eslint-plugin": "^6.8.0",
+    "@typescript-eslint/parser": "^6.8.0",
+    "eslint": "^8.50.0",
+    "prettier": "^3.0.3",
+    "jest": "^29.6.4",
+    "@types/jest": "^29.5.5",
+    "ts-jest": "^29.1.1",
+    "nodemon": "^3.0.1",
+    "ts-node": "^10.9.1"
+  },
+  "engines": {
+    "node": ">=23.6.0",
+    "npm": ">=10.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/ethereum-wallet-demo.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/ethereum-wallet-demo/issues"
+  },
+  "homepage": "https://github.com/yourusername/ethereum-wallet-demo#readme"
+}
