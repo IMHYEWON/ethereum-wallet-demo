@@ -117,22 +117,22 @@ export class ValidationUtils {
       return false;
     }
 
-    const words = mnemonic.trim().split(/\s+/);
-    
-    // 단어 개수 검증
-    if (!WALLET_CONSTANTS.MNEMONIC_LENGTHS.includes(words.length as any)) {
-      return false;
+    // bip39 라이브러리 사용
+    try {
+      const bip39 = require('bip39');
+      return bip39.validateMnemonic(mnemonic);
+    } catch (error) {
+      // bip39 라이브러리가 없는 경우 간단한 검증
+      const words = mnemonic.split(/\s+/);
+      
+      // 단어 개수 검증 (12, 15, 18, 21, 24)
+      if (!WALLET_CONSTANTS.MNEMONIC_LENGTHS.includes(words.length as any)) {
+        return false;
+      }
+
+      // 각 단어가 비어있지 않은지 확인
+      return words.every(word => word.length > 0);
     }
-
-    // 각 단어가 BIP39 단어 목록에 있는지 확인 (간단한 검증)
-    // 실제로는 bip39 라이브러리의 validateMnemonic 사용 권장
-    const validWords = [
-      'abandon', 'ability', 'able', 'about', 'above', 'absent', 'absorb', 'abstract', 'absurd', 'abuse',
-      'access', 'accident', 'account', 'accuse', 'achieve', 'acid', 'acoustic', 'acquire', 'across', 'act',
-      // ... 더 많은 단어들 (실제로는 bip39 라이브러리 사용)
-    ];
-
-    return words.every(word => validWords.includes(word.toLowerCase()));
   }
 
   /**
