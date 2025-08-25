@@ -21,8 +21,14 @@ export class ValidationUtils {
       return false;
     }
 
-    // 체크섬 검증 (대소문자 혼합 주소)
-    return this.isValidChecksumAddress(address);
+    // ethers.js를 사용한 정확한 주소 검증
+    try {
+      const { ethers } = require('ethers');
+      ethers.getAddress(address); // 이 함수가 유효한 주소인지 검증
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   /**
@@ -80,7 +86,14 @@ export class ValidationUtils {
       return false;
     }
 
-    return true;
+    // ethers.js를 사용한 추가 검증
+    try {
+      const { ethers } = require('ethers');
+      new ethers.Wallet(privateKey); // 이 함수가 유효한 개인키인지 검증
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   /**
