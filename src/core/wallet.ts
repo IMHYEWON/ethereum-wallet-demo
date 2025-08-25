@@ -36,6 +36,12 @@ export class Wallet {
       // 새로운 지갑 생성
       const ethersWallet = ethers.Wallet.createRandom();
       
+      // 비밀번호 해시 생성 (있는 경우)
+      let passwordHash: string | undefined;
+      if (defaultOptions.password) {
+        passwordHash = CryptoUtils.sha256(defaultOptions.password);
+      }
+
       // 지갑 정보 구성
       this.walletInfo = {
         address: ethersWallet.address,
@@ -43,7 +49,8 @@ export class Wallet {
         publicKey: ethersWallet.publicKey,
         mnemonic: defaultOptions.generateMnemonic ? ethersWallet.mnemonic?.phrase : undefined,
         balance: '0',
-        nonce: 0
+        nonce: 0,
+        ...(passwordHash && { passwordHash })
       };
 
       console.log(SUCCESS_MESSAGES.WALLET_CREATED);
@@ -111,6 +118,14 @@ export class Wallet {
 
     if (!ValidationUtils.isValidPassword(password)) {
       throw new Error(ERROR_MESSAGES.INVALID_PASSWORD);
+    }
+
+    // 저장된 비밀번호와 일치하는지 확인
+    if (this.walletInfo.passwordHash) {
+      const inputPasswordHash = CryptoUtils.sha256(password);
+      if (inputPasswordHash !== this.walletInfo.passwordHash) {
+        throw new Error('지갑 생성 시 설정한 비밀번호와 일치하지 않습니다.');
+      }
     }
 
     try {

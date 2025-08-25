@@ -114,10 +114,12 @@ class WalletCLI {
     console.log('------------------------');
 
     const generateMnemonic = await this.getInput('니모닉을 생성하시겠습니까? (y/n): ') === 'y';
+    const password = await this.getInput('지갑 보안을 위한 비밀번호를 입력하세요: ');
     
     const walletInfo = this.wallet.create({
       generateMnemonic,
-      mnemonicLength: 24
+      mnemonicLength: 24,
+      password
     });
 
     console.log('✅ 지갑이 성공적으로 생성되었습니다!');
@@ -126,6 +128,7 @@ class WalletCLI {
     if (walletInfo.mnemonic) {
       console.log(`📝 니모닉: ${walletInfo.mnemonic}`);
     }
+    console.log('🔐 비밀번호가 설정되었습니다. 백업 및 복구 시 필요합니다.');
     console.log('');
   }
 

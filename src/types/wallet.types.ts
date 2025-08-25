@@ -5,6 +5,7 @@ export interface WalletInfo {
   mnemonic: string | undefined;
   balance: string;
   nonce: number;
+  passwordHash?: string;
 }
 
 export interface WalletBackup {
