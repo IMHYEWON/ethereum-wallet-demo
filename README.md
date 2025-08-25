@@ -104,6 +104,7 @@ npm run test:coverage
 ## 📚 문서
 
 - [개발 명세서](./DEVELOPMENT_SPEC.md)
+- [CLI 사용법](./CLI.md) - 명령줄 인터페이스 사용법 및 예시
 - [API 레퍼런스](./docs/api.md)
 - [사용자 가이드](./docs/user-guide.md)
 
