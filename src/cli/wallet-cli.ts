@@ -7,10 +7,13 @@ import { WalletBackup } from '../types/wallet.types';
 import * as readline from 'readline';
 
 /**
- * Phase 2 기능 테스트 CLI
- * 지갑 생성, 가져오기, 백업, 복구 등의 기능을 테스트
+ * Ethereum Wallet CLI
+ * 모든 Phase의 기능을 통합하여 제공하는 메인 CLI
+ * Phase 2: 지갑 기능 ✅
+ * Phase 3: 트랜잭션 기능 (예정)
+ * Phase 4: 네트워크 연동 (예정)
  */
-class Phase2TestCLI {
+class WalletCLI {
   private wallet: Wallet;
   private rl: readline.Interface;
 
@@ -26,8 +29,14 @@ class Phase2TestCLI {
    * CLI 실행
    */
   async run(): Promise<void> {
-    console.log('🚀 Phase 2: 핵심 지갑 기능 테스트 CLI');
-    console.log('=====================================\n');
+    console.log('🚀 Ethereum Wallet CLI');
+    console.log('======================');
+    console.log('📋 구현된 기능:');
+    console.log('  ✅ Phase 2: 핵심 지갑 기능');
+    console.log('  🔄 Phase 3: 트랜잭션 처리 (개발 중)');
+    console.log('  🔄 Phase 4: 네트워크 연동 (예정)');
+    console.log('  🔄 Phase 5: 통합 테스트 (예정)');
+    console.log('');
 
     while (true) {
       await this.showMenu();
@@ -57,11 +66,17 @@ class Phase2TestCLI {
             await this.testCrypto();
             break;
           case '8':
-            console.log('👋 테스트를 종료합니다.');
+            await this.testTransactionFeatures(); // Phase 3 기능 (준비 중)
+            break;
+          case '9':
+            await this.testNetworkFeatures(); // Phase 4 기능 (준비 중)
+            break;
+          case '0':
+            console.log('👋 CLI를 종료합니다.');
             this.rl.close();
             return;
           default:
-            console.log('❌ 잘못된 선택입니다. 1-8 중에서 선택해주세요.\n');
+            console.log('❌ 잘못된 선택입니다. 0-9 중에서 선택해주세요.\n');
         }
       } catch (error) {
         console.log(`❌ 오류 발생: ${error instanceof Error ? error.message : '알 수 없는 오류'}\n`);
@@ -73,7 +88,8 @@ class Phase2TestCLI {
    * 메뉴 표시
    */
   private async showMenu(): Promise<void> {
-    console.log('📋 사용 가능한 테스트:');
+    console.log('📋 사용 가능한 기능:');
+    console.log('=== Phase 2: 지갑 기능 (✅ 완료) ===');
     console.log('1. 🆕 새 지갑 생성');
     console.log('2. 📥 지갑 가져오기');
     console.log('3. ℹ️  지갑 정보 조회');
@@ -81,7 +97,12 @@ class Phase2TestCLI {
     console.log('5. 🔄 지갑 복구');
     console.log('6. ✅ 입력값 검증 테스트');
     console.log('7. 🔐 암호화 기능 테스트');
-    console.log('8. 🚪 종료');
+    console.log('=== Phase 3: 트랜잭션 기능 (🔄 개발 중) ===');
+    console.log('8. 💸 트랜잭션 기능 테스트');
+    console.log('=== Phase 4: 네트워크 기능 (🔄 예정) ===');
+    console.log('9. 🌐 네트워크 기능 테스트');
+    console.log('=== 기타 ===');
+    console.log('0. 🚪 종료');
     console.log('');
   }
 
@@ -93,18 +114,21 @@ class Phase2TestCLI {
     console.log('------------------------');
 
     const generateMnemonic = await this.getInput('니모닉을 생성하시겠습니까? (y/n): ') === 'y';
+    const password = await this.getInput('지갑 보안을 위한 비밀번호를 입력하세요: ');
     
     const walletInfo = this.wallet.create({
       generateMnemonic,
-      mnemonicLength: 24
+      mnemonicLength: 24,
+      password
     });
 
     console.log('✅ 지갑이 성공적으로 생성되었습니다!');
     console.log(`📍 주소: ${walletInfo.address}`);
-    console.log(`🔑 공개키: ${walletInfo.publicKey.substring(0, 20)}...`);
+    console.log(`🔑 공개키: ${walletInfo.publicKey}`);
     if (walletInfo.mnemonic) {
-      console.log(`📝 니모닉: ${walletInfo.mnemonic.substring(0, 50)}...`);
+      console.log(`📝 니모닉: ${walletInfo.mnemonic}`);
     }
+    console.log('🔐 비밀번호가 설정되었습니다. 백업 및 복구 시 필요합니다.');
     console.log('');
   }
 
@@ -152,11 +176,11 @@ class Phase2TestCLI {
     if (walletInfo) {
       console.log('📋 지갑 정보:');
       console.log(`📍 주소: ${walletInfo.address}`);
-      console.log(`🔑 공개키: ${walletInfo.publicKey.substring(0, 20)}...`);
+      console.log(`🔑 공개키: ${walletInfo.publicKey}`);
       console.log(`💰 잔액: ${walletInfo.balance} wei`);
       console.log(`🔢 Nonce: ${walletInfo.nonce}`);
       if (walletInfo.mnemonic) {
-        console.log(`📝 니모닉: ${walletInfo.mnemonic.substring(0, 50)}...`);
+        console.log(`📝 니모닉: ${walletInfo.mnemonic}`);
       }
       console.log(`✅ 유효성: ${this.wallet.isValid() ? '유효' : '무효'}`);
     }
@@ -230,6 +254,7 @@ class Phase2TestCLI {
           encryptedPrivateKey,
           iv,
           salt,
+          mnemonic: undefined,
           createdAt: new Date()
         };
         
@@ -315,12 +340,42 @@ class Phase2TestCLI {
   }
 
   /**
+   * Phase 3: 트랜잭션 기능 테스트 (준비 중)
+   */
+  private async testTransactionFeatures(): Promise<void> {
+    console.log('\n💸 트랜잭션 기능 테스트');
+    console.log('------------------------');
+    console.log('🔄 Phase 3가 아직 개발 중입니다.');
+    console.log('📋 구현 예정 기능:');
+    console.log('  - 트랜잭션 생성 및 서명');
+    console.log('  - 가스비 추정 및 설정');
+    console.log('  - 트랜잭션 전송 및 모니터링');
+    console.log('  - ERC-20 토큰 전송');
+    console.log('');
+  }
+
+  /**
+   * Phase 4: 네트워크 기능 테스트 (준비 중)
+   */
+  private async testNetworkFeatures(): Promise<void> {
+    console.log('\n🌐 네트워크 기능 테스트');
+    console.log('------------------------');
+    console.log('🔄 Phase 4가 아직 개발 중입니다.');
+    console.log('📋 구현 예정 기능:');
+    console.log('  - Ethereum 네트워크 연결');
+    console.log('  - Infura/Alchemy API 연동');
+    console.log('  - 잔액 조회 및 트랜잭션 모니터링');
+    console.log('  - Sepolia 테스트넷 지원');
+    console.log('');
+  }
+
+  /**
    * 사용자 입력 받기
    */
   private getInput(prompt: string): Promise<string> {
     return new Promise((resolve) => {
       this.rl.question(prompt, (answer) => {
-        resolve(answer.trim());
+        resolve(answer);
       });
     });
   }
@@ -328,6 +383,6 @@ class Phase2TestCLI {
 
 // CLI 실행
 if (require.main === module) {
-  const cli = new Phase2TestCLI();
+  const cli = new WalletCLI();
   cli.run().catch(console.error);
 }

@@ -21,8 +21,14 @@ export class ValidationUtils {
       return false;
     }
 
-    // 체크섬 검증 (대소문자 혼합 주소)
-    return this.isValidChecksumAddress(address);
+    // ethers.js를 사용한 정확한 주소 검증
+    try {
+      const { ethers } = require('ethers');
+      ethers.getAddress(address); // 이 함수가 유효한 주소인지 검증
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   /**
@@ -37,15 +43,15 @@ export class ValidationUtils {
       const hashedAddress = this.keccak256(cleanAddress.toLowerCase());
       
       for (let i = 0; i < 40; i++) {
-        const hashByte = parseInt(hashedAddress[i], 16);
+        const hashByte = parseInt(hashedAddress[i] || '0', 16);
         const addressChar = cleanAddress[i];
         
-        if (hashByte >= 8) {
+        if (addressChar && hashByte >= 8) {
           // 대문자여야 함
           if (addressChar !== addressChar.toUpperCase()) {
             return false;
           }
-        } else {
+        } else if (addressChar) {
           // 소문자여야 함
           if (addressChar !== addressChar.toLowerCase()) {
             return false;
@@ -80,7 +86,14 @@ export class ValidationUtils {
       return false;
     }
 
-    return true;
+    // ethers.js를 사용한 추가 검증
+    try {
+      const { ethers } = require('ethers');
+      new ethers.Wallet(privateKey); // 이 함수가 유효한 개인키인지 검증
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   /**
@@ -117,22 +130,22 @@ export class ValidationUtils {
       return false;
     }
 
-    const words = mnemonic.trim().split(/\s+/);
-    
-    // 단어 개수 검증
-    if (!WALLET_CONSTANTS.MNEMONIC_LENGTHS.includes(words.length as any)) {
-      return false;
+    // bip39 라이브러리 사용
+    try {
+      const bip39 = require('bip39');
+      return bip39.validateMnemonic(mnemonic);
+    } catch (error) {
+      // bip39 라이브러리가 없는 경우 간단한 검증
+      const words = mnemonic.split(/\s+/);
+      
+      // 단어 개수 검증 (12, 15, 18, 21, 24)
+      if (!WALLET_CONSTANTS.MNEMONIC_LENGTHS.includes(words.length as any)) {
+        return false;
+      }
+
+      // 각 단어가 비어있지 않은지 확인
+      return words.every(word => word.length > 0);
     }
-
-    // 각 단어가 BIP39 단어 목록에 있는지 확인 (간단한 검증)
-    // 실제로는 bip39 라이브러리의 validateMnemonic 사용 권장
-    const validWords = [
-      'abandon', 'ability', 'able', 'about', 'above', 'absent', 'absorb', 'abstract', 'absurd', 'abuse',
-      'access', 'accident', 'account', 'accuse', 'achieve', 'acid', 'acoustic', 'acquire', 'across', 'act',
-      // ... 더 많은 단어들 (실제로는 bip39 라이브러리 사용)
-    ];
-
-    return words.every(word => validWords.includes(word.toLowerCase()));
   }
 
   /**
@@ -254,7 +267,7 @@ export class ValidationUtils {
    * @returns 유효한 길이인지 여부
    */
   static isValidStringLength(value: string, maxLength: number): boolean {
-    return value && value.length <= maxLength;
+    return Boolean(value) && value.length <= maxLength;
   }
 
   /**
@@ -262,7 +275,7 @@ export class ValidationUtils {
    * @param data 해시할 데이터
    * @returns 해시된 데이터
    */
-  private static keccak256(data: string): string {
+  private static keccak256(_data: string): string {
     // 실제 구현에서는 ethers.js의 keccak256 사용
     // 여기서는 간단한 예시로 대체
     return '0x' + '0'.repeat(64);

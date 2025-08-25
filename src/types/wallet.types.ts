@@ -2,9 +2,10 @@ export interface WalletInfo {
   address: string;
   privateKey: string;
   publicKey: string;
-  mnemonic?: string;
+  mnemonic: string | undefined;
   balance: string;
   nonce: number;
+  passwordHash?: string;
 }
 
 export interface WalletBackup {
@@ -12,7 +13,7 @@ export interface WalletBackup {
   encryptedPrivateKey: string;
   iv: string;
   salt: string;
-  mnemonic?: string;
+  mnemonic: string | undefined;
   createdAt: Date;
 }
 

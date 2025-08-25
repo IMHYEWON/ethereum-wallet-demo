@@ -11,7 +11,7 @@
     "test:unit": "jest --testPathPattern=unit",
     "test:integration": "jest --testPathPattern=integration",
     "test:coverage": "jest --coverage",
-    "test:phase2": "ts-node src/cli/phase2-test.ts",
+    "wallet": "ts-node src/cli/wallet-cli.ts",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
     "format": "prettier --write src/**/*.ts",

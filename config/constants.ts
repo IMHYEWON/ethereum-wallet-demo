@@ -8,7 +8,7 @@ export const CRYPTO_CONSTANTS = {
   // AES 설정
   AES_KEY_LENGTH: 32,
   AES_IV_LENGTH: 16,
-  AES_ALGORITHM: 'aes-256-gcm',
+  AES_ALGORITHM: 'aes-256-cbc',
   
   // 해시 설정
   HASH_ALGORITHM: 'sha256',
