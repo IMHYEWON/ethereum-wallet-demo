@@ -37,15 +37,15 @@ export class ValidationUtils {
       const hashedAddress = this.keccak256(cleanAddress.toLowerCase());
       
       for (let i = 0; i < 40; i++) {
-        const hashByte = parseInt(hashedAddress[i], 16);
+        const hashByte = parseInt(hashedAddress[i] || '0', 16);
         const addressChar = cleanAddress[i];
         
-        if (hashByte >= 8) {
+        if (addressChar && hashByte >= 8) {
           // 대문자여야 함
           if (addressChar !== addressChar.toUpperCase()) {
             return false;
           }
-        } else {
+        } else if (addressChar) {
           // 소문자여야 함
           if (addressChar !== addressChar.toLowerCase()) {
             return false;
@@ -254,7 +254,7 @@ export class ValidationUtils {
    * @returns 유효한 길이인지 여부
    */
   static isValidStringLength(value: string, maxLength: number): boolean {
-    return value && value.length <= maxLength;
+    return Boolean(value) && value.length <= maxLength;
   }
 
   /**
@@ -262,7 +262,7 @@ export class ValidationUtils {
    * @param data 해시할 데이터
    * @returns 해시된 데이터
    */
-  private static keccak256(data: string): string {
+  private static keccak256(_data: string): string {
     // 실제 구현에서는 ethers.js의 keccak256 사용
     // 여기서는 간단한 예시로 대체
     return '0x' + '0'.repeat(64);

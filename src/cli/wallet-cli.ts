@@ -122,9 +122,9 @@ class WalletCLI {
 
     console.log('✅ 지갑이 성공적으로 생성되었습니다!');
     console.log(`📍 주소: ${walletInfo.address}`);
-    console.log(`🔑 공개키: ${walletInfo.publicKey.substring(0, 20)}...`);
+    console.log(`🔑 공개키: ${walletInfo.publicKey}`);
     if (walletInfo.mnemonic) {
-      console.log(`📝 니모닉: ${walletInfo.mnemonic.substring(0, 50)}...`);
+      console.log(`📝 니모닉: ${walletInfo.mnemonic}`);
     }
     console.log('');
   }
@@ -173,11 +173,11 @@ class WalletCLI {
     if (walletInfo) {
       console.log('📋 지갑 정보:');
       console.log(`📍 주소: ${walletInfo.address}`);
-      console.log(`🔑 공개키: ${walletInfo.publicKey.substring(0, 20)}...`);
+      console.log(`🔑 공개키: ${walletInfo.publicKey}`);
       console.log(`💰 잔액: ${walletInfo.balance} wei`);
       console.log(`🔢 Nonce: ${walletInfo.nonce}`);
       if (walletInfo.mnemonic) {
-        console.log(`📝 니모닉: ${walletInfo.mnemonic.substring(0, 50)}...`);
+        console.log(`📝 니모닉: ${walletInfo.mnemonic}`);
       }
       console.log(`✅ 유효성: ${this.wallet.isValid() ? '유효' : '무효'}`);
     }
@@ -251,6 +251,7 @@ class WalletCLI {
           encryptedPrivateKey,
           iv,
           salt,
+          mnemonic: undefined,
           createdAt: new Date()
         };
         
@@ -381,5 +382,4 @@ class WalletCLI {
 if (require.main === module) {
   const cli = new WalletCLI();
   cli.run().catch(console.error);
-}
 }

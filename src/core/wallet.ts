@@ -5,8 +5,7 @@ import {
   WalletInfo, 
   WalletBackup, 
   WalletImportOptions, 
-  WalletCreateOptions,
-  WalletBalance 
+  WalletCreateOptions
 } from '../types/wallet.types';
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '../../config/constants';
 
@@ -65,7 +64,7 @@ export class Wallet {
         throw new Error('개인키 또는 니모닉이 필요합니다.');
       }
 
-      let ethersWallet: ethers.Wallet;
+      let ethersWallet: ethers.Wallet | ethers.HDNodeWallet;
 
       if (options.privateKey) {
         // 개인키로 가져오기
@@ -87,7 +86,7 @@ export class Wallet {
       this.walletInfo = {
         address: ethersWallet.address,
         privateKey: ethersWallet.privateKey,
-        publicKey: ethersWallet.publicKey,
+        publicKey: (ethersWallet as any).publicKey || '',
         mnemonic: options.mnemonic,
         balance: '0',
         nonce: 0

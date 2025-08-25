@@ -39,52 +39,42 @@ export class CryptoUtils {
   }
 
   /**
-   * AES-256-GCM을 사용하여 데이터 암호화
+   * AES-256-CBC를 사용하여 데이터 암호화
    * @param data 암호화할 데이터
    * @param key 암호화 키 (32바이트)
    * @param iv 초기화 벡터 (16바이트)
-   * @returns 암호화된 데이터와 인증 태그
+   * @returns 암호화된 데이터
    */
   static encryptAES(data: Buffer, key: Buffer, iv: Buffer): {
     encryptedData: Buffer;
     authTag: Buffer;
   } {
-    const cipher = crypto.createCipherGCM(
-      CRYPTO_CONSTANTS.AES_ALGORITHM,
-      key,
-      iv
-    );
+    const cipher = crypto.createCipher('aes-256-cbc', key, iv);
     
     let encryptedData = cipher.update(data);
     encryptedData = Buffer.concat([encryptedData, cipher.final()]);
     
     return {
       encryptedData,
-      authTag: cipher.getAuthTag(),
+      authTag: Buffer.alloc(16), // CBC 모드에서는 authTag가 필요 없음
     };
   }
 
   /**
-   * AES-256-GCM을 사용하여 데이터 복호화
+   * AES-256-CBC를 사용하여 데이터 복호화
    * @param encryptedData 암호화된 데이터
    * @param key 복호화 키 (32바이트)
    * @param iv 초기화 벡터 (16바이트)
-   * @param authTag 인증 태그
+   * @param authTag 인증 태그 (CBC 모드에서는 사용되지 않음)
    * @returns 복호화된 데이터
    */
   static decryptAES(
     encryptedData: Buffer,
     key: Buffer,
     iv: Buffer,
-    authTag: Buffer
+    _authTag: Buffer // 사용되지 않지만 호환성을 위해 유지
   ): Buffer {
-    const decipher = crypto.createDecipherGCM(
-      CRYPTO_CONSTANTS.AES_ALGORITHM,
-      key,
-      iv
-    );
-    
-    decipher.setAuthTag(authTag);
+    const decipher = crypto.createDecipher('aes-256-cbc', key, iv);
     
     let decryptedData = decipher.update(encryptedData);
     decryptedData = Buffer.concat([decryptedData, decipher.final()]);
