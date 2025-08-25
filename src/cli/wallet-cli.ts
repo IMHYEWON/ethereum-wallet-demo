@@ -372,7 +372,7 @@ class WalletCLI {
   private getInput(prompt: string): Promise<string> {
     return new Promise((resolve) => {
       this.rl.question(prompt, (answer) => {
-        resolve(answer.trim());
+        resolve(answer);
       });
     });
   }
