@@ -49,7 +49,7 @@ export class CryptoUtils {
     encryptedData: Buffer;
     authTag: Buffer;
   } {
-    const cipher = crypto.createCipher('aes-256-cbc', key, iv);
+    const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
     
     let encryptedData = cipher.update(data);
     encryptedData = Buffer.concat([encryptedData, cipher.final()]);
@@ -74,7 +74,7 @@ export class CryptoUtils {
     iv: Buffer,
     _authTag: Buffer // 사용되지 않지만 호환성을 위해 유지
   ): Buffer {
-    const decipher = crypto.createDecipher('aes-256-cbc', key, iv);
+    const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
     
     let decryptedData = decipher.update(encryptedData);
     decryptedData = Buffer.concat([decryptedData, decipher.final()]);
