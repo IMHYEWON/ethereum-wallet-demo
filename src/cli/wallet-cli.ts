@@ -5,7 +5,7 @@ import { Wallet } from '../core/wallet';
 import { Transaction } from '../core/transaction';
 import { CryptoUtils } from '../utils/crypto';
 import { ValidationUtils } from '../utils/validation';
-import { WalletBackup, WalletInfo } from '../types/wallet.types';
+import { WalletBackup } from '../types/wallet.types';
 import { TransactionRequest, TransactionOptions } from '../types/transaction.types';
 import * as readline from 'readline';
 

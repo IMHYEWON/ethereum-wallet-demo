@@ -2,8 +2,6 @@ import { ethers } from 'ethers';
 import { ValidationUtils } from '../utils/validation';
 import {
   TransactionRequest,
-  TransactionResponse,
-  TransactionReceipt,
   GasEstimate,
   TransactionOptions
 } from '../types/transaction.types';
@@ -60,15 +58,26 @@ export class Transaction {
       throw new Error('지갑이 설정되지 않았습니다.');
     }
 
-    if (!this.provider) {
-      throw new Error('Provider가 설정되지 않았습니다.');
-    }
-
     // 입력값 검증
     this.validateTransactionRequest(request);
 
     try {
-      // 기본값 설정
+      // Phase 3에서는 기본값으로 트랜잭션 생성 (실제 네트워크 연결 없음)
+      if (!this.provider) {
+        const transaction: ethers.TransactionRequest = {
+          to: request.to,
+          value: ethers.parseEther(request.value),
+          data: request.data || '0x',
+          nonce: options.nonce ?? 0,
+          chainId: options.chainId ?? 1, // Ethereum 메인넷
+          gasPrice: options.gasPrice ? ethers.parseUnits(options.gasPrice, 'gwei') : ethers.parseUnits('20', 'gwei'),
+          gasLimit: options.gasLimit ? ethers.getBigInt(options.gasLimit) : ethers.getBigInt(21000)
+        };
+
+        return transaction;
+      }
+
+      // 실제 Provider가 있는 경우
       const nonce = options.nonce ?? await this.wallet.getNonce();
       const chainId = options.chainId ?? (await this.provider.getNetwork()).chainId;
 
@@ -178,31 +187,45 @@ export class Transaction {
    * @returns 가스비 추정 결과
    */
   async estimateGas(request: TransactionRequest): Promise<GasEstimate> {
-    if (!this.provider) {
-      throw new Error('Provider가 설정되지 않았습니다.');
-    }
-
     try {
-      // 가스 한계 추정
+      // Phase 3에서는 모의 가스비 추정 (실제 네트워크 연결 없음)
+      if (!this.provider) {
+        // 기본 가스비 추정 (테스트용)
+        const baseGasLimit = ethers.getBigInt(21000); // 기본 ETH 전송 가스 한계
+        const gasPrice = ethers.parseUnits('20', 'gwei'); // 20 gwei
+        const totalCost = baseGasLimit * gasPrice;
+
+        return {
+          gasLimit: baseGasLimit.toString(),
+          gasPrice: gasPrice.toString(),
+          totalCost: ethers.formatEther(totalCost)
+        };
+      }
+
+      // 실제 Provider가 있는 경우
       const gasLimit = await this.provider.estimateGas({
         to: request.to,
         value: ethers.parseEther(request.value),
         data: request.data || '0x'
       });
 
-      // 가스비 정보 조회
       const feeData = await this.provider.getFeeData();
-      
-      // 총 비용 계산
       const totalCost = gasLimit * (feeData.gasPrice || ethers.parseUnits('20', 'gwei'));
 
-      return {
+      const result: GasEstimate = {
         gasLimit: gasLimit.toString(),
         gasPrice: feeData.gasPrice?.toString() || '0',
-        maxFeePerGas: feeData.maxFeePerGas?.toString(),
-        maxPriorityFeePerGas: feeData.maxPriorityFeePerGas?.toString(),
         totalCost: ethers.formatEther(totalCost)
       };
+
+      if (feeData.maxFeePerGas) {
+        result.maxFeePerGas = feeData.maxFeePerGas.toString();
+      }
+      if (feeData.maxPriorityFeePerGas) {
+        result.maxPriorityFeePerGas = feeData.maxPriorityFeePerGas.toString();
+      }
+
+      return result;
     } catch (error) {
       throw new Error(`가스비 추정 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
     }
@@ -235,7 +258,7 @@ export class Transaction {
   async waitForTransaction(
     hash: string,
     confirmations: number = 1
-  ): Promise<ethers.TransactionReceipt> {
+  ): Promise<ethers.TransactionReceipt | null> {
     if (!this.provider) {
       throw new Error('Provider가 설정되지 않았습니다.');
     }
