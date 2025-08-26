@@ -1,16 +1,34 @@
 # Ethereum Wallet Demo System - Development Specification
 
 ## 프로젝트 개요
-Ethereum 및 ERC-20 토큰을 지원하는 단순한 지갑 데모 시스템을 TypeScript로 개발합니다.
+Ethereum 및 ERC-20 토큰을 지원하는 단순한 지갑 데모 시스템을 TypeScript로 개발합니다. 
+CLI 인터페이스와 함께 Next.js 기반의 웹 인터페이스를 제공하여 사용자 친화적인 경험을 제공합니다.
+Vercel을 통한 배포로 실제 사용자들이 접근할 수 있는 온라인 지갑 서비스로 발전시킵니다.
 
 ## 기술 스택
+
+### 백엔드
 - **언어**: TypeScript 5.x
 - **런타임**: Node.js v23.6.0
 - **패키지 매니저**: npm
-- **암호화 라이브러리**: ethers.js v6.x
+- **암호화 라이브러리**: ethers.js v6.x, crypto-js, bip39, hdkey
 - **개발 도구**: TypeScript Compiler, ESLint, Prettier
 - **테스트**: Jest
 - **빌드 도구**: ts-node, nodemon (개발용)
+
+### 프론트엔드 (Phase 5)
+- **프레임워크**: Next.js 14+ (App Router)
+- **언어**: TypeScript
+- **스타일링**: Tailwind CSS
+- **상태 관리**: Zustand 또는 React Context
+- **UI 컴포넌트**: shadcn/ui 또는 Radix UI
+- **암호화**: Web Crypto API
+
+### 배포 및 운영 (Phase 6)
+- **호스팅**: Vercel
+- **도메인**: 커스텀 도메인 지원
+- **SSL**: 자동 SSL 인증서
+- **CDN**: 글로벌 CDN 자동 설정
 
 ## 핵심 기능 요구사항
 
@@ -42,27 +60,45 @@ Ethereum 및 ERC-20 토큰을 지원하는 단순한 지갑 데모 시스템을 
 ```
 ethereum-wallet-demo/
 ├── src/
-│   ├── core/
+│   ├── core/                  # 백엔드 핵심 로직
 │   │   ├── wallet.ts          # 지갑 핵심 로직
 │   │   ├── transaction.ts     # 트랜잭션 처리
 │   │   └── crypto.ts          # 암호화 유틸리티
-│   ├── services/
+│   ├── services/              # 백엔드 서비스
 │   │   ├── ethereum.ts        # Ethereum 네트워크 연결
 │   │   ├── storage.ts         # 로컬 저장소 관리
 │   │   └── api.ts             # 외부 API 연동
-│   ├── types/
+│   ├── types/                 # 공통 타입 정의
 │   │   ├── wallet.types.ts    # 지갑 관련 타입 정의
 │   │   └── transaction.types.ts # 트랜잭션 관련 타입 정의
-│   ├── utils/
+│   ├── utils/                 # 백엔드 유틸리티
 │   │   ├── validation.ts      # 입력값 검증
 │   │   └── helpers.ts         # 헬퍼 함수
-│   └── cli/
-│       └── index.ts           # CLI 인터페이스
-├── tests/
+│   ├── cli/                   # CLI 인터페이스
+│   │   └── wallet-cli.ts      # 지갑 CLI
+│   └── web/                   # 웹 인터페이스 (Phase 5)
+│       ├── app/               # Next.js App Router
+│       │   ├── page.tsx       # 메인 페이지
+│       │   ├── wallet/        # 지갑 관련 페이지
+│       │   ├── transaction/   # 트랜잭션 관련 페이지
+│       │   └── layout.tsx     # 레이아웃
+│       ├── components/        # React 컴포넌트
+│       │   ├── ui/            # 기본 UI 컴포넌트
+│       │   ├── wallet/        # 지갑 관련 컴포넌트
+│       │   └── transaction/   # 트랜잭션 관련 컴포넌트
+│       ├── lib/               # 웹 전용 유틸리티
+│       │   ├── wallet-web.ts  # 웹용 지갑 로직
+│       │   └── storage-web.ts # 웹용 저장소
+│       └── styles/            # 스타일 파일
+├── wallets/                   # 지갑 저장소 (Phase 4)
+│   ├── wallet-1.json         # 지갑 1 정보
+│   ├── wallet-2.json         # 지갑 2 정보
+│   └── index.json            # 지갑 목록 인덱스
+├── tests/                     # 테스트
 │   ├── unit/                  # 단위 테스트
 │   ├── integration/           # 통합 테스트
 │   └── fixtures/              # 테스트 데이터
-├── config/
+├── config/                    # 설정 파일
 │   ├── networks.ts            # 네트워크 설정
 │   └── constants.ts           # 상수 정의
 ├── docs/                      # 문서
@@ -71,6 +107,8 @@ ethereum-wallet-demo/
 ├── tsconfig.json
 ├── .eslintrc.js
 ├── .prettierrc
+├── next.config.js             # Next.js 설정 (Phase 5)
+├── tailwind.config.js         # Tailwind CSS 설정 (Phase 5)
 └── README.md
 ```
 
@@ -124,12 +162,34 @@ ethereum-wallet-demo/
 - [x] 가스비 계산 및 설정 (모의 모드)
 - [x] 트랜잭션 전송 기능 (시뮬레이션)
 
-### Phase 4: 네트워크 연동
-- [ ] Ethereum 네트워크 연결
+### Phase 4: 네트워크 연동 및 지갑 영구 저장
+- [ ] Ethereum 네트워크 연결 (Sepolia 테스트넷)
 - [ ] Infura/Alchemy API 연동
 - [ ] 잔액 조회 및 트랜잭션 모니터링
+- [ ] 지갑 및 개인키 영구 저장 시스템
+- [ ] 암호화된 지갑 파일 관리
+- [ ] 실제 트랜잭션 전송 및 모니터링
 
-### Phase 5: CLI 인터페이스 및 테스트
+### Phase 5: 웹 인터페이스 구현 (Next.js)
+- [ ] Next.js 프로젝트 설정 및 구조
+- [ ] 지갑 생성/가져오기 웹 인터페이스
+- [ ] 트랜잭션 처리 웹 인터페이스
+- [ ] 반응형 디자인 및 사용자 경험 최적화
+- [ ] 지갑 영구 저장 및 관리
+- [ ] 보안 강화 (비밀번호 관리, 세션 관리)
+- [ ] Web3 지갑 연동 (MetaMask 등)
+- [ ] 실시간 잔액 및 트랜잭션 상태 표시
+
+## Phase 6: 배포 및 운영 (Vercel)
+- [ ] Vercel 배포 설정
+- [ ] 환경변수 및 보안 설정
+- [ ] 도메인 설정 및 SSL 인증서
+- [ ] 모니터링 및 로그 관리
+- [ ] 성능 최적화
+- [ ] CI/CD 파이프라인 구축
+- [ ] 백업 및 복구 전략
+
+## Phase 7: CLI 인터페이스 및 테스트
 - [ ] 명령줄 인터페이스 구현
 - [ ] 단위 테스트 작성
 - [ ] 통합 테스트 작성
@@ -144,6 +204,22 @@ ethereum-wallet-demo/
   "crypto-js": "^4.2.0",
   "bip39": "^3.1.0",
   "hdkey": "^2.1.0"
+}
+```
+
+### 프론트엔드 의존성 (Phase 5)
+```json
+{
+  "next": "^14.0.0",
+  "react": "^18.2.0",
+  "react-dom": "^18.2.0",
+  "tailwindcss": "^3.3.0",
+  "zustand": "^4.4.0",
+  "@radix-ui/react-dialog": "^1.0.0",
+  "@radix-ui/react-dropdown-menu": "^2.0.0",
+  "class-variance-authority": "^0.7.0",
+  "clsx": "^2.0.0",
+  "tailwind-merge": "^2.0.0"
 }
 ```
 
