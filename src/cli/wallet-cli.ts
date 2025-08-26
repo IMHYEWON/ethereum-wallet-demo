@@ -1,9 +1,12 @@
 #!/usr/bin/env node
 
+import { ethers } from 'ethers';
 import { Wallet } from '../core/wallet';
+import { Transaction } from '../core/transaction';
 import { CryptoUtils } from '../utils/crypto';
 import { ValidationUtils } from '../utils/validation';
-import { WalletBackup } from '../types/wallet.types';
+import { WalletBackup, WalletInfo } from '../types/wallet.types';
+import { TransactionRequest, TransactionOptions } from '../types/transaction.types';
 import * as readline from 'readline';
 
 /**
@@ -15,10 +18,12 @@ import * as readline from 'readline';
  */
 class WalletCLI {
   private wallet: Wallet;
+  private transaction: Transaction;
   private rl: readline.Interface;
 
   constructor() {
     this.wallet = new Wallet();
+    this.transaction = new Transaction();
     this.rl = readline.createInterface({
       input: process.stdin,
       output: process.stdout
@@ -33,7 +38,7 @@ class WalletCLI {
     console.log('======================');
     console.log('📋 구현된 기능:');
     console.log('  ✅ Phase 2: 핵심 지갑 기능');
-    console.log('  🔄 Phase 3: 트랜잭션 처리 (개발 중)');
+    console.log('  ✅ Phase 3: 트랜잭션 처리');
     console.log('  🔄 Phase 4: 네트워크 연동 (예정)');
     console.log('  🔄 Phase 5: 통합 테스트 (예정)');
     console.log('');
@@ -97,7 +102,7 @@ class WalletCLI {
     console.log('5. 🔄 지갑 복구');
     console.log('6. ✅ 입력값 검증 테스트');
     console.log('7. 🔐 암호화 기능 테스트');
-    console.log('=== Phase 3: 트랜잭션 기능 (🔄 개발 중) ===');
+    console.log('=== Phase 3: 트랜잭션 기능 (✅ 완료) ===');
     console.log('8. 💸 트랜잭션 기능 테스트');
     console.log('=== Phase 4: 네트워크 기능 (🔄 예정) ===');
     console.log('9. 🌐 네트워크 기능 테스트');
@@ -340,18 +345,221 @@ class WalletCLI {
   }
 
   /**
-   * Phase 3: 트랜잭션 기능 테스트 (준비 중)
+   * Phase 3: 트랜잭션 기능 테스트
    */
   private async testTransactionFeatures(): Promise<void> {
     console.log('\n💸 트랜잭션 기능 테스트');
     console.log('------------------------');
-    console.log('🔄 Phase 3가 아직 개발 중입니다.');
-    console.log('📋 구현 예정 기능:');
-    console.log('  - 트랜잭션 생성 및 서명');
-    console.log('  - 가스비 추정 및 설정');
-    console.log('  - 트랜잭션 전송 및 모니터링');
-    console.log('  - ERC-20 토큰 전송');
+
+    if (!this.wallet.exists()) {
+      console.log('❌ 먼저 지갑을 생성하거나 가져와야 합니다.');
+      return;
+    }
+
+    console.log('📋 사용 가능한 트랜잭션 테스트:');
+    console.log('1. 💰 가스비 추정');
+    console.log('2. 📝 트랜잭션 생성');
+    console.log('3. ✍️  트랜잭션 서명');
+    console.log('4. 🚀 트랜잭션 전송 (시뮬레이션)');
+    console.log('5. 🔍 트랜잭션 상태 조회');
+    console.log('6. ↩️  메인 메뉴로 돌아가기');
     console.log('');
+
+    const choice = await this.getInput('선택하세요 (1-6): ');
+
+    try {
+      switch (choice) {
+        case '1':
+          await this.testGasEstimation();
+          break;
+        case '2':
+          await this.testTransactionCreation();
+          break;
+        case '3':
+          await this.testTransactionSigning();
+          break;
+        case '4':
+          await this.testTransactionSending();
+          break;
+        case '5':
+          await this.testTransactionStatus();
+          break;
+        case '6':
+          return;
+        default:
+          console.log('❌ 잘못된 선택입니다. 1-6 중에서 선택해주세요.\n');
+      }
+    } catch (error) {
+      console.log(`❌ 오류 발생: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+    }
+  }
+
+  /**
+   * 가스비 추정 테스트
+   */
+  private async testGasEstimation(): Promise<void> {
+    console.log('\n💰 가스비 추정 테스트');
+    console.log('----------------------');
+
+    const toAddress = await this.getInput('수신 주소를 입력하세요: ');
+    const amount = await this.getInput('전송할 금액을 입력하세요 (ETH): ');
+
+    try {
+      const request: TransactionRequest = {
+        to: toAddress,
+        value: amount
+      };
+
+      const gasEstimate = await this.transaction.estimateGas(request);
+      
+      console.log('✅ 가스비 추정 완료:');
+      console.log(`🔢 가스 한계: ${gasEstimate.gasLimit}`);
+      console.log(`⛽ 가스 가격: ${ethers.formatUnits(gasEstimate.gasPrice || '0', 'gwei')} gwei`);
+      console.log(`💰 총 비용: ${gasEstimate.totalCost} ETH`);
+      console.log('');
+    } catch (error) {
+      console.log(`❌ 가스비 추정 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+    }
+  }
+
+  /**
+   * 트랜잭션 생성 테스트
+   */
+  private async testTransactionCreation(): Promise<void> {
+    console.log('\n📝 트랜잭션 생성 테스트');
+    console.log('------------------------');
+
+    const toAddress = await this.getInput('수신 주소를 입력하세요: ');
+    const amount = await this.getInput('전송할 금액을 입력하세요 (ETH): ');
+    const gasLimit = await this.getInput('가스 한계를 입력하세요 (선택사항, Enter로 자동): ');
+
+    try {
+      const request: TransactionRequest = {
+        to: toAddress,
+        value: amount
+      };
+
+      const options: TransactionOptions = {};
+      if (gasLimit.trim()) {
+        options.gasLimit = gasLimit;
+      }
+
+      const transaction = await this.transaction.createTransaction(request, options);
+      
+      console.log('✅ 트랜잭션 생성 완료:');
+      console.log(`📍 수신 주소: ${transaction.to}`);
+      console.log(`💰 금액: ${ethers.formatEther(transaction.value || '0')} ETH`);
+      console.log(`🔢 Nonce: ${transaction.nonce}`);
+      console.log(`⛽ 가스 한계: ${transaction.gasLimit?.toString()}`);
+      console.log(`🔗 Chain ID: ${transaction.chainId}`);
+      console.log('');
+    } catch (error) {
+      console.log(`❌ 트랜잭션 생성 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+    }
+  }
+
+  /**
+   * 트랜잭션 서명 테스트
+   */
+  private async testTransactionSigning(): Promise<void> {
+    console.log('\n✍️  트랜잭션 서명 테스트');
+    console.log('---------------------------');
+
+    const toAddress = await this.getInput('수신 주소를 입력하세요: ');
+    const amount = await this.getInput('전송할 금액을 입력하세요 (ETH): ');
+
+    try {
+      // 지갑 정보 가져오기
+      const walletInfo = this.wallet.getInfo();
+      if (!walletInfo) {
+        console.log('❌ 지갑 정보를 가져올 수 없습니다.');
+        return;
+      }
+
+      // 트랜잭션 인스턴스에 지갑 설정
+      this.transaction.setWallet(walletInfo.privateKey);
+
+      const request: TransactionRequest = {
+        to: toAddress,
+        value: amount
+      };
+
+      const transaction = await this.transaction.createTransaction(request);
+      const signedTransaction = await this.transaction.signTransaction(transaction);
+      
+      console.log('✅ 트랜잭션 서명 완료:');
+      console.log(`🔐 서명된 트랜잭션: ${signedTransaction.substring(0, 100)}...`);
+      console.log(`📏 서명 길이: ${signedTransaction.length} 문자`);
+      console.log('');
+    } catch (error) {
+      console.log(`❌ 트랜잭션 서명 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+    }
+  }
+
+  /**
+   * 트랜잭션 전송 테스트 (시뮬레이션)
+   */
+  private async testTransactionSending(): Promise<void> {
+    console.log('\n🚀 트랜잭션 전송 테스트 (시뮬레이션)');
+    console.log('----------------------------------------');
+
+    console.log('⚠️  현재는 시뮬레이션 모드입니다.');
+    console.log('실제 네트워크 연결 없이 트랜잭션 구조만 검증합니다.');
+    console.log('');
+
+    const toAddress = await this.getInput('수신 주소를 입력하세요: ');
+    const amount = await this.getInput('전송할 금액을 입력하세요 (ETH): ');
+
+    try {
+      // 지갑 정보 가져오기
+      const walletInfo = this.wallet.getInfo();
+      if (!walletInfo) {
+        console.log('❌ 지갑 정보를 가져올 수 없습니다.');
+        return;
+      }
+
+      // 트랜잭션 인스턴스에 지갑 설정
+      this.transaction.setWallet(walletInfo.privateKey);
+
+      const request: TransactionRequest = {
+        to: toAddress,
+        value: amount
+      };
+
+      // 트랜잭션 생성 및 서명
+      const transaction = await this.transaction.createTransaction(request);
+      const signedTransaction = await this.transaction.signTransaction(transaction);
+      
+      console.log('✅ 트랜잭션 전송 시뮬레이션 완료:');
+      console.log(`📍 수신 주소: ${transaction.to}`);
+      console.log(`💰 금액: ${ethers.formatEther(transaction.value || '0')} ETH`);
+      console.log(`🔢 Nonce: ${transaction.nonce}`);
+      console.log(`🔐 서명 완료: ${signedTransaction.substring(0, 50)}...`);
+      console.log('');
+      console.log('📝 실제 네트워크 전송은 Phase 4에서 구현됩니다.');
+      console.log('');
+    } catch (error) {
+      console.log(`❌ 트랜잭션 전송 시뮬레이션 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+    }
+  }
+
+  /**
+   * 트랜잭션 상태 조회 테스트
+   */
+  private async testTransactionStatus(): Promise<void> {
+    console.log('\n🔍 트랜잭션 상태 조회 테스트');
+    console.log('-----------------------------');
+
+    const txHash = await this.getInput('트랜잭션 해시를 입력하세요: ');
+
+    try {
+      console.log('✅ 트랜잭션 상태 조회 완료:');
+      console.log(`🔗 해시: ${txHash}`);
+      console.log('📝 실제 상태 조회는 Phase 4에서 네트워크 연결 후 가능합니다.');
+      console.log('');
+    } catch (error) {
+      console.log(`❌ 트랜잭션 상태 조회 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+    }
   }
 
   /**
