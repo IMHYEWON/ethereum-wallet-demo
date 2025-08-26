@@ -127,6 +127,11 @@ class WalletCLI {
       password
     });
 
+    // Transaction 인스턴스에 지갑 설정
+    if (walletInfo && walletInfo.privateKey) {
+      this.transaction.setWallet(walletInfo.privateKey);
+    }
+
     console.log('✅ 지갑이 성공적으로 생성되었습니다!');
     console.log(`📍 주소: ${walletInfo.address}`);
     console.log(`🔑 공개키: ${walletInfo.publicKey}`);
@@ -144,23 +149,30 @@ class WalletCLI {
     console.log('\n📥 지갑 가져오기 테스트');
     console.log('------------------------');
 
-    if (!this.wallet.exists()) {
-      console.log('❌ 먼저 지갑을 생성하거나 가져와야 합니다.');
-      return;
-    }
-
     const importType = await this.getInput('가져오기 방식 선택 (1: 개인키, 2: 니모닉): ');
     
-    if (importType === '1') {
-      const privateKey = await this.getInput('개인키를 입력하세요 (0x로 시작): ');
-      this.wallet.import({ privateKey });
-      console.log('✅ 개인키로 지갑을 가져왔습니다.');
-    } else if (importType === '2') {
-      const mnemonic = await this.getInput('니모닉을 입력하세요: ');
-      this.wallet.import({ mnemonic });
-      console.log('✅ 니모닉으로 지갑을 가져왔습니다.');
-    } else {
-      console.log('❌ 잘못된 선택입니다.');
+    try {
+      if (importType === '1') {
+        const privateKey = await this.getInput('개인키를 입력하세요 (0x로 시작): ');
+        this.wallet.import({ privateKey });
+        // Transaction 인스턴스에 지갑 설정
+        this.transaction.setWallet(privateKey);
+        console.log('✅ 개인키로 지갑을 가져왔습니다.');
+      } else if (importType === '2') {
+        const mnemonic = await this.getInput('니모닉을 입력하세요: ');
+        this.wallet.import({ mnemonic });
+        // Transaction 인스턴스에 지갑 설정 (개인키로)
+        const walletInfo = this.wallet.getInfo();
+        if (walletInfo && walletInfo.privateKey) {
+          this.transaction.setWallet(walletInfo.privateKey);
+        }
+        console.log('✅ 니모닉으로 지갑을 가져왔습니다.');
+      } else {
+        console.log('❌ 잘못된 선택입니다.');
+        return;
+      }
+    } catch (error) {
+      console.log(`❌ 지갑 가져오기 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
     }
     console.log('');
   }
